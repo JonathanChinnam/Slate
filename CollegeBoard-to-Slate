@@ -1,0 +1,103 @@
+import requests
+import datetime
+import json
+
+#Function to GET list of files in directory
+def get_file_directory_listing(username, password, fromDate):
+    url = f"https://scoresdownload.collegeboard.org/pascoredwnld/files/list?fromDate={fromDate}"
+
+    # Create the payload with the provided username and password
+    payload = {
+        "username": username,
+        "password": password
+    }
+
+    # Set the headers with Content-Type as application/json
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    # Make the POST request to the API
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        data = response.json()
+        files = data.get("files", [])
+        return files
+    elif response.status_code == 400:
+        data = response.json()
+        error_message = data.get("message", "Unknown error")
+        print(f"Error: {error_message}")
+    else:
+        print(f"Error: Request failed with status code {response.status_code}")
+
+    return None
+
+
+#Function to GET AWS download url.
+def get_pre_signed_url(username, password, filename):
+    url = f"https://scoresdownload.collegeboard.org/pascoredwnld/file?filename={filename}"
+
+    payload = {
+        "username": username,
+        "password": password
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        file_url = data.get("fileUrl")
+        return file_url
+    elif response.status_code == 400:
+        data = response.json()
+        error_message = data.get("message", "Unknown error")
+        print(f"Error: {error_message}")
+    else:
+        print(f"Error: Request failed with status code {response.status_code}")
+
+    return None
+
+# Example usage
+if __name__ == "__main__":
+
+    # Collegeboard settings
+    username = "CB_USERNAME" #CollegeBoard Username
+    password = "CB_PASSWORD.." #CollegeBoard UsernamE
+    fromDate = datetime.date.today() - datetime.timedelta(days=3)
+
+    # Slate settings
+    slate_sf_url = 'https://YOUR.DOMAIN.GOES.HERE/manage/service/import?cmd=load&format=anndr6d1a-ef95-470f-4f76-154665f50474'
+    slate_user = 'SLATE_USERNAME' #Slate Username
+    slate_password = 'SLATE_PASSWORD' #Slate Password
+    session = requests.Session()
+
+    file_listing = get_file_directory_listing(username, password, fromDate.strftime("%Y-%m-%dT%H:%M:%S%z"))
+
+    if file_listing:
+        for file_info in file_listing:
+            if file_info['assessment'] == "SAT" and file_info['fileName'].endswith(".txt"):
+                # Get the pre-signed URL for the SAT file
+                file_url = get_pre_signed_url(username, password, file_info['fileName'])
+                if file_url:
+                    print(f"Pre-signed URL: {file_url}")
+                    # GET the actual file from AWS
+                    r = session.get(file_url)
+                    r.raise_for_status()
+                    report_data = r.content
+
+                    # POST the score report to Slate
+                    print(f'Uploading report with url {file_url}')
+                    creds = (slate_user, slate_password)
+                    r = requests.post(slate_sf_url, auth=creds, data=report_data)
+                    r.raise_for_status()
+
+    else:
+        print("No files have been posted since the specified fromDate.")
