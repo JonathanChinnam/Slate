@@ -71,7 +71,7 @@ if __name__ == "__main__":
     # Collegeboard settings
     username = "CB_USERNAME" #CollegeBoard Username
     password = "CB_PASSWORD.." #CollegeBoard UsernamE
-    fromDate = datetime.date.today() - datetime.timedelta(days=3)
+    fromDate = datetime.date.today() - datetime.timedelta(days=1)
 
     # Slate settings
     slate_sf_url = 'https://YOUR.DOMAIN.GOES.HERE/manage/service/import?cmd=load&format=anndr6d1a-ef95-470f-4f76-154665f50474'
