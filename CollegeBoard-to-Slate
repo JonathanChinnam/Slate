@@ -1,3 +1,20 @@
+"""
+Collegeboard and Slate credentials are required to update, between lines 88 and 91, before running this script. 
+
+Script fetches only Fixed Width(.txt) that were posted one day from collegeboard server. 
+You may change the number of days in LINE 91 per your scheduler.
+
+
+"""
+
+__author__ = "Sri Teja Chinnam"
+__email__ = "jboychinnam@gmail.com"
+__date__ = "19/07/2023"
+__license__ = "Open Source"
+
+
+
+
 import requests
 import datetime
 import json
@@ -77,6 +94,8 @@ if __name__ == "__main__":
     slate_sf_url = 'https://YOUR.DOMAIN.GOES.HERE/manage/service/import?cmd=load&format=anndr6d1a-ef95-470f-4f76-154665f50474'
     slate_user = 'SLATE_USERNAME' #Slate Username
     slate_password = 'SLATE_PASSWORD' #Slate Password
+
+
     session = requests.Session()
 
     file_listing = get_file_directory_listing(username, password, fromDate.strftime("%Y-%m-%dT%H:%M:%S%z"))
